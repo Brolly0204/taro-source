@@ -1,0 +1,15 @@
+<!--index.wxml-->
+<view>
+  <View class="container">
+  <View class="conut">
+    <Text>count: {{count}}</Text>
+  </View>
+  <View>
+    <Text className="text">{{text}}</Text>
+  </View>
+  <View wx:if="{{$taroCompReady}}">
+    <Text className="text">halo</Text>
+  </View>
+  <Button bindtap="onAddClick" class="btn">+1</Button>
+  <Button bindtap="onReduceClick" class="btn">-1</Button></View>
+</view>
