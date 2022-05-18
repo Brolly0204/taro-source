@@ -1,0 +1,90 @@
+import * as path from 'path';
+import * as fse from 'fs-extra';
+import babel from '../common/babel'
+import { config, outputDir, inputRoot } from './const';
+import { buildSinglePage } from '../common/buildSinglePage'
+// const outputDir = path.resolve(__dirname, '../../dist');
+// const inputRoot = path.join(path.resolve('.'), 'src')
+
+/**
+ *  检查目录等准备工作
+ */
+async function init() {
+    fse.removeSync(outputDir);
+    fse.ensureDirSync(outputDir);
+}
+
+/**
+ *  输出project.config.json
+ */
+async function buildProjectConfig() {
+    fse.writeFileSync(
+        path.join(outputDir, 'project.config.json'),
+        `
+{
+    'miniprogramRoot': './',
+    'projectname': 'app',
+    'description': 'app',
+    'appid': 'touristappid',
+    'setting': {
+        'urlCheck': true,
+        'es6': false,
+        'postcss': false,
+        'minified': false
+    },
+    'compileType': 'miniprogram'
+}
+    `
+    );
+}
+
+/**
+ *  输出入口文件app.js与app.json
+ */
+async function buildEntry() {
+    fse.writeFileSync(path.join(outputDir, './app.js'), `App({})`);
+    const config = require(path.resolve(inputRoot, 'app.config.js'));
+    fse.writeFileSync(
+        path.join(outputDir, './app.json'),
+        JSON.stringify(config, undefined, 2)
+    );
+}
+
+/**
+ * npm拷贝到输出目录
+ */
+async function copyNpmToWx() {
+    const npmPath = path.resolve(__dirname,'./npm')
+    const allFiles = await fse.readdirSync(npmPath)
+    console.log('allFiles', allFiles)
+    allFiles.forEach(async (fileName) => {
+        const fileContent = fse.readFileSync(path.join(npmPath, fileName)).toString()
+        const outputNpmPath = path.join(outputDir, `./npm/${fileName}`)
+        let resCode = await babel(fileContent, outputNpmPath)
+        fse.ensureDirSync(path.dirname(outputNpmPath))
+        fse.writeFileSync(outputNpmPath, resCode.code)
+    })
+}
+
+/**
+ *  页面生成4种输出到输出目录
+ */
+async function buildPages() {
+    config.pages.forEach(page => {
+        buildSinglePage(page)
+    })
+}
+
+async function main() {
+    // 检查目录等准备工作
+    await init()
+    // npm拷贝到输出目录
+    await copyNpmToWx();
+    // 页面生成4种输出到输出目录
+    await buildPages();
+    // 输出入口文件app.js与app.json
+    await buildEntry();
+    // 输出project.config.json
+    await buildProjectConfig();
+}
+main();

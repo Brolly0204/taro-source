@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rimraf lib && babel packages --out-dir lib --extensions \".js,.ts,.tsx\"",
+    "compile": "npm run build && node ./lib/compile-core/index"
   },
   "keywords": [],
   "author": "",
